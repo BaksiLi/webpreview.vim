@@ -4,6 +4,7 @@ import { EventBus, FindState, PDFFindController, PDFLinkService, PDFViewer } fro
 pdfjs.GlobalWorkerOptions.workerSrc = new URL('./pdfjs/build/pdf.worker.min.mjs', import.meta.url).href;
 const $ = selector => document.querySelector(selector);
 const container = $('#pages'), status = $('#status'), refreshButton = $('#refresh'), sourceButton = $('#source');
+const sourceLabel = $('#source .label');
 const findBar = $('#find-bar'), query = $('#query'), detail = $('#change-detail');
 const bus = new EventBus();
 const links = new PDFLinkService({ eventBus: bus, externalLinkTarget: 2, externalLinkRel: 'noopener noreferrer' });
@@ -63,7 +64,7 @@ function updateControls() {
   refreshButton.title = explanation;
   refreshButton.dataset.action = canRefresh ? 'refresh' : 'details';
   refreshButton.classList.toggle('loading', loading);
-  sourceButton.textContent = selection()?.text ? 'Select in source' : armed ? 'Cancel locate' : 'Locate in source';
+  sourceLabel.textContent = selection()?.text ? 'Select in source' : armed ? 'Cancel locate' : 'Locate in source';
   const current = shownMode === 'original' ? shown === latest
     : diff?.sync && shown === diff.sha256 && diff.source_revision === latest && diff.status !== 'needs-build';
   sourceButton.disabled = !connected || !syncAvailable || !shown || !current || loading;
@@ -218,7 +219,7 @@ function arm(value) {
   armed = value;
   sourceButton.setAttribute('aria-pressed', String(value));
   container.classList.toggle('locating', value);
-  sourceButton.textContent = selection()?.text ? 'Select in source' : value ? 'Cancel locate' : 'Locate in source';
+  sourceLabel.textContent = selection()?.text ? 'Select in source' : value ? 'Cancel locate' : 'Locate in source';
 }
 function point(page, clientX, clientY) {
   const view = viewer.getPageView(Number(page.dataset.pageNumber) - 1);
@@ -427,7 +428,7 @@ function diffControls() {
   $('#changes').title = text;
   $('#diff-log').hidden = !diff?.base;
   $('#download').href = shownMode === 'changes' ? './diff-download' : './download';
-  $('#download').textContent = shownMode === 'changes' ? 'Download changes PDF' : 'Download PDF';
+  $('#download .label').textContent = shownMode === 'changes' ? 'Download changes PDF' : 'Download PDF';
   if (detailKind === 'diff') showDetail('diff', 'Revision comparison', text);
 }
 $('#original').onclick = () => {

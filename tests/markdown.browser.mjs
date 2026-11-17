@@ -55,6 +55,19 @@ for (const [name, engine] of Object.entries({ chromium, webkit })) {
     assert.equal(await page.title(), 'draft.md · WebPreview');
     assert.equal(await page.locator('#state').textContent(), 'Live draft');
     assert.equal(await page.locator('#session').getAttribute('data-state'), 'connected');
+    assert.equal(await page.locator('#source').textContent(), 'Locate in source');
+    assert.ok((await page.locator('#source .icon').boundingBox()).width > 0, 'source navigation shows its icon');
+    await page.context().addCookies([{ name: 'webpreview-theme', value: 'dark', url: origin }]);
+    await page.reload();
+    await page.locator('h1').filter({ hasText: 'A scientific draft' }).waitFor();
+    assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), 'dark', 'a choice made in another reader applies');
+    assert.equal(await page.locator('[data-theme-choice=dark]').getAttribute('aria-pressed'), 'true');
+    assert.equal(await page.locator('img').evaluate(node => getComputedStyle(node).filter), 'none', 'images are not inverted');
+    await page.locator('#options > summary').click();
+    await page.locator('[data-theme-choice=system]').click();
+    await page.locator('#options > summary').click();
+    assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), 'light');
+    assert.ok(!(await page.context().cookies()).some(c => c.name === 'webpreview-theme'));
     await page.locator('#options > summary').focus();
     await page.keyboard.press('Enter');
     await page.locator('#follow').focus();
@@ -178,6 +191,12 @@ for (const [name, engine] of Object.entries({ chromium, webkit })) {
       const bounds = await touch.locator(selector).boundingBox();
       assert.ok(bounds.height >= 44 && bounds.width >= 44, selector + ' has a touch target');
     }
+    await touch.locator('#options > summary').tap();
+    for (const button of await touch.locator('[data-theme-choice]').all()) {
+      const bounds = await button.boundingBox();
+      assert.ok(bounds.width >= 44 && bounds.height >= 44 && bounds.x >= 0 && bounds.x + bounds.width <= 390, 'theme choice is a visible touch target');
+    }
+    await touch.locator('#options > summary').tap();
     assert.ok(await touch.locator('#state').isVisible(), 'draft state remains visible on phones');
     assert.equal(await touch.locator('ruby.ia-ruby-over').first().evaluate(node => getComputedStyle(node).rubyPosition), 'over');
     const sourceCount = events.filter(e => e.event === 'source').length;
@@ -190,8 +209,8 @@ for (const [name, engine] of Object.entries({ chromium, webkit })) {
       await page.setViewportSize({ width: 1280, height: 900 });
       await page.evaluate(() => scrollTo(0, 0));
       await page.screenshot({ path: join(process.env.SCREENSHOT_DIR, name + '-markdown.png') });
-      await page.emulateMedia({ colorScheme: 'dark' });
       await page.locator('#options > summary').click();
+      await page.locator('[data-theme-choice=dark]').click();
       await page.screenshot({ path: join(process.env.SCREENSHOT_DIR, name + '-markdown-dark.png') });
     }
     assert.deepEqual(errors, []);

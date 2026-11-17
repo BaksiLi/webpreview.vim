@@ -28,7 +28,7 @@ function selected() {
   return { line: Number(first.dataset.line), end_line: Number(last.dataset.endLine), text: sourceText(range) };
 }
 function controls() {
-  source.textContent = selected()?.text ? 'Select in source' : armed ? 'Cancel locate' : 'Locate in source';
+  $('#source .label').textContent = selected()?.text ? 'Select in source' : armed ? 'Cancel locate' : 'Locate in source';
   source.disabled = !live || !revision;
   source.title = !live ? 'Source navigation resumes when the preview reconnects'
     : !revision ? 'Waiting for a draft from the editor'

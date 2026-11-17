@@ -8,8 +8,9 @@ it alive; exiting Vim ends it.
 
 ![Live Markdown, source selection, and TeX Original/Changes with search](doc/workflow.gif)
 
-Live draft → select in source → compiled TeX → Changes → search.
-Static screenshots: [Markdown](doc/preview.png) · [TeX Changes](doc/changes.png).
+Live draft → select in source → compiled TeX → Changes → search, in nine seconds.
+Static screenshots: [Markdown](doc/preview.png) · [TeX Changes](doc/changes.png) ·
+[Dark mode](doc/preview-dark.png).
 
 ## Install
 
@@ -61,6 +62,11 @@ PDF offers Original/Changes views, search, continuous Fit and optional following
 Markdown retains native browser Find, refreshes without losing reading position,
 and pauses updates during text selection. Relative note links reuse its session.
 Cogitatum currently retains its own browser UI and transport.
+
+Both readers follow the system colour scheme. Choose System, Light or Dark in
+More options to override it; the choice is shared by previews in the same
+browser on the same host. PDF pages keep their original colours so figures and print layout
+remain faithful to the compiled document.
 
 For `paper.tex`, a source-adjacent `paper.base.tex` is detected automatically.
 Use `paper.review-base` for a Git ref or a relative path to a multi-file baseline.

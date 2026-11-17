@@ -49,6 +49,10 @@ Fit follows viewport width until manual zoom. Cmd-F / Ctrl-F searches the PDF.
 Options include cursor following. Ordinary opening does not enable continuous
 scroll synchronization.
 
+Both readers follow the system colour scheme. More options offers System,
+Light and Dark; the preference is shared by readers on the same browser host.
+PDF pages retain their printed colours, including figures.
+
 SESSIONS                                                 *webpreview-sessions*
 
 The editing Vim owns the reader through a JSON pipe. Zellij/tmux detach keeps it

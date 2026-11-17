@@ -5,15 +5,23 @@
 <title>WebPreview</title>
 <link rel="stylesheet" href="./markdown/katex.min.css">
 <link rel="stylesheet" href="./markdown/vendor.css">
+<script src="./theme.js"></script>
 <style>
-  :root { color-scheme: light dark; --ink:#18242a; --muted:#59666b; --paper:#fff; --bar:#f1f2ee; --desk:#e4e6df; --line:#d3d6d0; --accent:#357873; --control:#fbfcf8; --hover:#e6e8e2; --tap:34px; --on-accent:#fbfcf8; }
-  @media(prefers-color-scheme:dark) { :root { --ink:#efe8d8; --muted:#b3ab9b; --paper:#201e19; --bar:#1b1915; --desk:#12110e; --line:#3a362e; --accent:#85b4ac; --control:#24211c; --hover:#2f2b24; --on-accent:#12110e; } }
+  :root { color-scheme: light; --ink:#18242a; --muted:#59666b; --paper:#fff; --bar:#f1f2ee; --desk:#e4e6df; --line:#d3d6d0; --accent:#357873; --control:#fbfcf8; --hover:#e6e8e2; --tap:34px; --on-accent:#fbfcf8; }
+  :root[data-theme=dark] { color-scheme: dark; --ink:#efe8d8; --muted:#b3ab9b; --paper:#201e19; --bar:#1b1915; --desk:#12110e; --line:#3a362e; --accent:#85b4ac; --control:#24211c; --hover:#2f2b24; --on-accent:#12110e; }
+  /* Figures are drawn for white paper; keep transparent plots legible without inverting them. */
+  :root[data-theme=dark] main img { background:#fff; }
   * { box-sizing:border-box; }
   body { margin:0; color:var(--ink); background:var(--desk); font:16px/1.65 system-ui,sans-serif; }
   header { position:sticky; top:0; z-index:5; display:flex; flex-wrap:wrap; align-items:center; gap:4px 12px; padding:6px 10px; background:var(--bar); border-bottom:1px solid var(--line); font:14px/1.4 system-ui,sans-serif; }
-  header button, header summary { font:inherit; color:inherit; border:1px solid var(--line); border-radius:6px; background:var(--control); height:var(--tap); min-width:var(--tap); padding:0 10px; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; white-space:nowrap; }
+  header button, header summary { font:inherit; color:inherit; border:1px solid var(--line); border-radius:6px; background:var(--control); height:var(--tap); min-width:var(--tap); padding:0 10px; display:inline-flex; align-items:center; justify-content:center; gap:6px; cursor:pointer; white-space:nowrap; }
   header :is(button:hover:not(:disabled), summary:hover) { background:var(--hover); }
   header button:disabled { color:var(--muted); cursor:default; }
+  .icon { flex:none; width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+  .segmented { display:flex; padding:2px; margin:2px 0; border:1px solid var(--line); border-radius:8px; background:var(--hover); }
+  .segmented button { height:calc(var(--tap) - 4px); padding:0 8px; border-color:transparent; background:transparent; }
+  .segmented button[aria-pressed=true] { background:var(--control); border-color:var(--line); }
+  @media(pointer:coarse) { .segmented button { height:var(--tap); } }
   .identity { flex:1 1 12em; min-width:0; display:flex; align-items:center; gap:4px; }
   .document-info { min-width:0; }
   #session { flex:none; padding:0; border-color:transparent; background:transparent; }
@@ -27,7 +35,7 @@
   #options { position:relative; }
   #options > summary { list-style:none; padding:0 8px; }
   #options > summary::-webkit-details-marker { display:none; }
-  #options > div { position:absolute; right:0; top:calc(100% + 4px); padding:4px 8px; border:1px solid var(--line); border-radius:6px; background:var(--bar); box-shadow:0 4px 12px #0003; }
+  #options > div { position:absolute; right:0; top:calc(100% + 4px); width:max-content; max-width:calc(100vw - 32px); padding:4px 8px; border:1px solid var(--line); border-radius:6px; background:var(--bar); box-shadow:0 4px 12px #0003; }
   #options label { display:flex; align-items:center; gap:6px; min-height:var(--tap); padding:0 4px; white-space:nowrap; }
   #options input { margin:0; accent-color:var(--ink); }
   #notice { flex-basis:100%; color:var(--muted); overflow-wrap:anywhere; }
@@ -56,11 +64,25 @@
     <div class="document-info"><strong id="name">Markdown</strong><span id="state" role="status" aria-atomic="true">Connecting…</span></div>
   </div>
   <div class="actions" role="group" aria-label="Source navigation">
-    <button id="source" aria-pressed="false" disabled>Locate in source</button>
-    <details id="options"><summary aria-label="More options" title="More options">⋯</summary><div><label title="Keep the editor cursor in view"><input id="follow" type="checkbox">Follow cursor</label></div></details>
+    <button id="source" aria-pressed="false" disabled><svg class="icon" aria-hidden="true"><use href="#i-locate"/></svg><span class="label">Locate in source</span></button>
+    <details id="options"><summary aria-label="More options" title="More options"><svg class="icon" aria-hidden="true"><use href="#i-more"/></svg></summary><div>
+      <label title="Keep the editor cursor in view"><input id="follow" type="checkbox">Follow cursor</label>
+      <div class="segmented" role="group" aria-label="Theme" title="Reader theme; images keep their colours">
+        <button data-theme-choice="system" aria-pressed="true"><svg class="icon" aria-hidden="true"><use href="#i-system"/></svg>System</button>
+        <button data-theme-choice="light" aria-pressed="false"><svg class="icon" aria-hidden="true"><use href="#i-light"/></svg>Light</button>
+        <button data-theme-choice="dark" aria-pressed="false"><svg class="icon" aria-hidden="true"><use href="#i-dark"/></svg>Dark</button>
+      </div>
+    </div></details>
   </div>
   <span id="notice" role="status" aria-atomic="true"></span>
 </header>
 <main id="document" tabindex="0" aria-label="Markdown document"></main>
+<svg style="display:none" aria-hidden="true">
+  <symbol id="i-locate" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6.5"/><path d="M12 2.5v4M12 17.5v4M2.5 12h4M17.5 12h4"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><path d="M5 12h.01M12 12h.01M19 12h.01" stroke-width="3"/></symbol>
+  <symbol id="i-system" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></symbol>
+  <symbol id="i-light" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></symbol>
+  <symbol id="i-dark" viewBox="0 0 24 24"><path d="M19.5 14.5A8 8 0 1 1 9.5 4.5a6.5 6.5 0 0 0 10 10z"/></symbol>
+</svg>
 <script type="module" src="./viewer.mjs"></script>
 </html>

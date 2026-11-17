@@ -78,6 +78,8 @@ def handler_for(document, token, url_host='127.0.0.1', markdown_assets=None):
                     content_type = 'text/html; charset=utf-8'
                 elif route == 'viewer.mjs':
                     data, content_type = (ASSETS / (document.page + '.mjs')).read_bytes(), 'text/javascript'
+                elif route == 'theme.js':
+                    data, content_type = (ASSETS / 'theme.js').read_bytes(), 'text/javascript'
                 elif route.startswith(('pdfjs/', 'markdown/')):
                     prefix, archive = ('pdfjs/', 'pdfjs-5.4.624.zip') if route.startswith('pdfjs/') else ('markdown/', 'markdown-libraries.zip')
                     path = markdown_assets if prefix == 'markdown/' and markdown_assets else ASSETS / archive

@@ -53,10 +53,42 @@ for (const [name, engine] of Object.entries({ chromium, webkit })) {
     await page.locator('.textLayer span').first().waitFor();
     await page.locator('#refresh').filter({ hasText: 'Up to date' }).waitFor();
     console.log(name + ': reader loaded');
+    const readingArea = await page.locator('main').boundingBox();
+    assert.equal(Math.round(readingArea.y + readingArea.height), await page.evaluate(() => innerHeight),
+      'PDF reading area fills the space below the toolbar');
     assert.equal(await page.locator('#diff-state').count(), 0);
     const sourceBounds = await page.locator('#source').boundingBox(), findBounds = await page.locator('#find').boundingBox();
     assert.ok(findBounds.x > sourceBounds.x, 'Find is at the right');
     assert.equal(await page.locator('#source').textContent(), 'Locate in source');
+    assert.equal(await page.locator('#source .icon use').getAttribute('href'), '#i-locate');
+    for (const button of ['#find', '#fit', '#source']) {
+      assert.ok((await page.locator(button + ' .icon').boundingBox()).width > 0, button + ' shows its icon');
+    }
+    assert.equal(await page.locator('#find').getAttribute('aria-label'), 'Find in PDF');
+    const paper = () => page.locator('.page').first().evaluate(node => getComputedStyle(node).backgroundColor);
+    const canvasFilter = () => page.locator('.page canvas').first().evaluate(node => getComputedStyle(node).filter);
+    await page.emulateMedia({ colorScheme: 'dark' });
+    await until(async () => await page.evaluate(() => document.documentElement.dataset.theme) === 'dark', 'System follows the browser');
+    await page.locator('#options > summary').click();
+    await page.locator('[data-theme-choice=light]').click();
+    assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), 'light');
+    assert.equal(await page.locator('[data-theme-choice=light]').getAttribute('aria-pressed'), 'true');
+    await page.locator('[data-theme-choice=dark]').click();
+    await page.emulateMedia({ colorScheme: 'light' });
+    assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), 'dark', 'explicit Dark overrides the browser');
+    assert.notEqual(await page.evaluate(() => getComputedStyle(document.querySelector('header')).backgroundColor), 'rgb(241, 242, 238)');
+    assert.equal(await paper(), 'rgb(255, 255, 255)', 'dark keeps white PDF pages');
+    assert.equal(await canvasFilter(), 'none', 'dark never inverts PDF content');
+    assert.ok((await page.context().cookies('http://127.0.0.1:1/')).some(c => c.name === 'webpreview-theme' && c.value === 'dark'), 'choice is shared across reader ports');
+    await page.reload();
+    await page.locator('.textLayer span').first().waitFor();
+    assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), 'dark', 'choice persists');
+    assert.equal(await page.locator('[data-theme-choice=dark]').getAttribute('aria-pressed'), 'true');
+    await page.locator('#options > summary').click();
+    await page.locator('[data-theme-choice=system]').click();
+    await page.locator('#options > summary').click();
+    assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), 'light');
+    assert.ok(!(await page.context().cookies()).some(c => c.name === 'webpreview-theme'), 'System clears the stored choice');
     await page.locator('#session').click();
     assert.equal(await page.locator('#session').getAttribute('aria-expanded'), 'true');
     await page.locator('#change-close').click();
@@ -173,6 +205,12 @@ for (const [name, engine] of Object.entries({ chromium, webkit })) {
       const bounds = await touch.locator(button).boundingBox();
       assert.ok(bounds.width >= 44 && bounds.height >= 44, button + ' has a touch target');
     }
+    await touch.locator('#options > summary').tap();
+    for (const button of await touch.locator('[data-theme-choice]').all()) {
+      const bounds = await button.boundingBox();
+      assert.ok(bounds.width >= 44 && bounds.height >= 44 && bounds.x >= 0 && bounds.x + bounds.width <= 390, 'theme choice is a visible touch target');
+    }
+    await touch.locator('#options > summary').tap();
     await touch.locator('#fit').tap();
     assert.equal(await touch.locator('#fit').getAttribute('aria-pressed'), 'false');
     await touch.locator('#fit').tap();
@@ -195,8 +233,8 @@ for (const [name, engine] of Object.entries({ chromium, webkit })) {
       await touch.locator('#query').fill('revised');
       await touch.locator('#matches').filter({ hasText: /1 \/ 1/ }).waitFor();
       await touch.screenshot({ path: join(process.env.SCREENSHOT_DIR, name + '-mobile-find.png') });
-      await page.emulateMedia({ colorScheme: 'dark' });
       await page.locator('#options > summary').click();
+      await page.locator('[data-theme-choice=dark]').click();
       await page.screenshot({ path: join(process.env.SCREENSHOT_DIR, name + '-dark.png') });
     }
     await mobile.close();

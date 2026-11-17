@@ -5,19 +5,21 @@
 <title>WebPreview</title>
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="./pdfjs/web/pdf_viewer.css">
+<script src="./theme.js"></script>
 <style>
   :root {
-    color-scheme: light dark;
+    color-scheme: light;
     --ink: #18242a; --muted: #59666b; --bar: #f1f2ee; --line: #d3d6d0;
     --control: #fbfcf8; --hover: #e6e8e2; --desk: #c8cbc4;
     --accent: #18242a; --on-accent: #fbfcf8; --tap: 34px;
   }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --ink: #efe8d8; --muted: #b3ab9b; --bar: #1b1915; --line: #3a362e;
-      --control: #24211c; --hover: #2f2b24; --desk: #12110e;
-      --accent: #efe8d8; --on-accent: #12110e;
-    }
+  /* Dark themes the reader around the pages only. Pages keep PDF.js's white
+     paper and are never inverted, so figures, plots and colour keys stay as built. */
+  :root[data-theme=dark] {
+    color-scheme: dark;
+    --ink: #efe8d8; --muted: #b3ab9b; --bar: #1b1915; --line: #3a362e;
+    --control: #24211c; --hover: #2f2b24; --desk: #12110e;
+    --accent: #efe8d8; --on-accent: #12110e;
   }
   /* Tablets and phones are first-class readers; keep thumb-sized targets. */
   @media (pointer: coarse) { :root { --tap: 44px; } }
@@ -34,7 +36,7 @@
   header :is(button, a, input), #change-detail button { font: inherit; color: inherit; }
   header :is(button, a, summary), #change-detail button {
     box-sizing: border-box;
-    flex: none; height: var(--tap); padding: 0 10px; display: inline-flex; align-items: center;
+    flex: none; height: var(--tap); padding: 0 10px; display: inline-flex; align-items: center; gap: 6px;
     min-width: var(--tap);
     border: 1px solid var(--line); border-radius: 6px; background: var(--control);
     text-decoration: none; cursor: pointer; white-space: nowrap;
@@ -43,14 +45,14 @@
   :is(header, #change-detail) :is(button, a, input, summary):focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
   header button:disabled { color: var(--muted); cursor: default; }
   .group button { min-width: var(--tap); justify-content: center; padding: 0 8px; }
-  .versions { gap: 0; padding: 2px; border: 1px solid var(--line); border-radius: 8px; background: var(--hover); }
-  .versions button { height: calc(var(--tap) - 4px); border-color: transparent; background: transparent; }
-  .versions button[aria-pressed=true] { background: var(--control); border-color: var(--line); }
-  @media (pointer: coarse) { .versions button { height: var(--tap); } }
+  .icon { flex: none; width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .segmented { gap: 0; padding: 2px; border: 1px solid var(--line); border-radius: 8px; background: var(--hover); }
+  .segmented button { height: calc(var(--tap) - 4px); border-color: transparent; background: transparent; }
+  .segmented button[aria-pressed=true] { background: var(--control); border-color: var(--line); }
+  @media (pointer: coarse) { .segmented button { height: var(--tap); } }
   #refresh { min-width: 7em; justify-content: center; }
   .quiet, #refresh:disabled { border-color: transparent; background: transparent; }
   .end { margin-left: auto; }
-  #find svg { display: none; width: 18px; height: 18px; }
   /* Less frequent choices live in a native disclosure beside the toolbar. */
   #options { position: relative; }
   #options > summary { list-style: none; min-width: var(--tap); justify-content: center; padding: 0 8px; }
@@ -63,6 +65,7 @@
   }
   #options > div a { justify-content: flex-start; }
   #options label { padding: 0 4px; }
+  #options .segmented { margin: 2px 0; }
   .row-break { display: none; }
   /* Phones: reading position on one row, the actions that answer it on the next. */
   @media (max-width: 640px) {
@@ -70,11 +73,11 @@
     .controls { gap: 4px; }
     .row-break { display: block; flex-basis: 100%; height: 0; }
     #refresh { min-width: 0; padding: 0 4px; }
-    .versions button { padding: 0 4px; }
+    .segmented button { padding: 0 4px; }
     #source { padding: 0 6px; }
+    #source .icon { display: none; }
     .end { margin-left: auto; }
     #find { width: var(--tap); justify-content: center; padding: 0; }
-    #find svg { display: block; }
     #find .label { display: none; }
   }
   /* Toolbar display rules must not revive controls that are hidden. */
@@ -131,25 +134,30 @@
       <input id="page" type="number" inputmode="numeric" min="1" value="1" aria-label="Page number" aria-describedby="count"> <span id="count"></span>
     </div>
     <div class="group" role="group" aria-label="Zoom">
-      <button id="smaller" aria-label="Zoom out">−</button>
-      <button id="fit" aria-label="Fit page width" aria-pressed="true" title="Keep fitting page width as the window changes">Fit</button>
-      <button id="larger" aria-label="Zoom in">+</button>
+      <button id="smaller" aria-label="Zoom out" title="Zoom out"><svg class="icon" aria-hidden="true"><use href="#i-minus"/></svg></button>
+      <button id="fit" aria-label="Fit page width" aria-pressed="true" title="Keep fitting page width as the window changes"><svg class="icon" aria-hidden="true"><use href="#i-fit"/></svg></button>
+      <button id="larger" aria-label="Zoom in" title="Zoom in"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg></button>
     </div>
     <span class="row-break" aria-hidden="true"></span>
-    <div class="group versions" role="group" aria-label="PDF version">
+    <div class="group segmented" role="group" aria-label="PDF version">
       <button id="original" aria-pressed="true">Original</button>
       <button id="changes" aria-pressed="false" aria-controls="change-detail" aria-expanded="false">Changes</button>
     </div>
-    <button id="back" hidden title="Return after a citation jump">Back</button>
-    <button id="source" disabled aria-pressed="false">Locate in source</button>
+    <button id="back" hidden title="Return after a citation jump"><svg class="icon" aria-hidden="true"><use href="#i-back"/></svg><span class="label">Back</span></button>
+    <button id="source" disabled aria-pressed="false"><svg class="icon" aria-hidden="true"><use href="#i-locate"/></svg><span class="label">Locate in source</span></button>
     <div class="group end">
-    <button id="find" aria-label="Find in PDF" aria-expanded="false" aria-controls="find-bar" title="Find in PDF (⌘F / Ctrl+F)"><span class="label">Find</span><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10" cy="10" r="6.5"/><path d="m15 15 6 6"/></svg></button>
+    <button id="find" aria-label="Find in PDF" aria-expanded="false" aria-controls="find-bar" title="Find in PDF (⌘F / Ctrl+F)"><svg class="icon" aria-hidden="true"><use href="#i-find"/></svg><span class="label">Find</span></button>
     <details id="options">
-      <summary aria-label="More options" title="More options">⋯</summary>
+      <summary aria-label="More options" title="More options"><svg class="icon" aria-hidden="true"><use href="#i-more"/></svg></summary>
       <div>
         <label title="Load each completed build automatically"><input id="auto" type="checkbox" checked>Auto refresh</label>
-        <a id="download" class="quiet" href="./download" download>Download PDF</a>
-        <a id="diff-log" class="quiet" href="./diff-log" target="_blank" hidden>Comparison log</a>
+        <a id="download" class="quiet" href="./download" download><svg class="icon" aria-hidden="true"><use href="#i-download"/></svg><span class="label">Download PDF</span></a>
+        <a id="diff-log" class="quiet" href="./diff-log" target="_blank" hidden><svg class="icon" aria-hidden="true"><use href="#i-log"/></svg><span class="label">Comparison log</span></a>
+        <div class="group segmented" role="group" aria-label="Theme" title="Reader theme; pages keep their printed colours">
+          <button data-theme-choice="system" aria-pressed="true"><svg class="icon" aria-hidden="true"><use href="#i-system"/></svg>System</button>
+          <button data-theme-choice="light" aria-pressed="false"><svg class="icon" aria-hidden="true"><use href="#i-light"/></svg>Light</button>
+          <button data-theme-choice="dark" aria-pressed="false"><svg class="icon" aria-hidden="true"><use href="#i-dark"/></svg>Dark</button>
+        </div>
       </div>
     </details>
     </div>
@@ -158,14 +166,31 @@
   <div id="find-bar" role="search" hidden>
     <input id="query" type="search" aria-label="Find in PDF" enterkeyhint="search" placeholder="Find in PDF">
     <div class="group">
-      <button id="previous" aria-label="Previous match" title="Previous match (Shift+Enter)">↑</button>
-      <button id="next" aria-label="Next match" title="Next match (Enter)">↓</button>
-      <button id="find-close" class="quiet" aria-label="Close find" title="Close (Esc)">×</button>
+      <button id="previous" aria-label="Previous match" title="Previous match (Shift+Enter)"><svg class="icon" aria-hidden="true"><use href="#i-up"/></svg></button>
+      <button id="next" aria-label="Next match" title="Next match (Enter)"><svg class="icon" aria-hidden="true"><use href="#i-down"/></svg></button>
+      <button id="find-close" class="quiet" aria-label="Close find" title="Close (Esc)"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button>
     </div>
     <span id="matches" role="status" aria-atomic="true"></span>
   </div>
 </header>
-<aside id="change-detail" aria-labelledby="change-title" hidden><button id="change-close" class="quiet" aria-label="Close details">×</button><strong id="change-title"></strong><pre id="change-text"></pre></aside>
+<aside id="change-detail" aria-labelledby="change-title" hidden><button id="change-close" class="quiet" aria-label="Close details"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button><strong id="change-title"></strong><pre id="change-text"></pre></aside>
 <main><div id="pages" tabindex="0" aria-label="PDF document"><div class="pdfViewer"></div></div></main>
+<svg style="display:none" aria-hidden="true">
+  <symbol id="i-locate" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6.5"/><path d="M12 2.5v4M12 17.5v4M2.5 12h4M17.5 12h4"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></symbol>
+  <symbol id="i-find" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><path d="M5 12h.01M12 12h.01M19 12h.01" stroke-width="3"/></symbol>
+  <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-fit" viewBox="0 0 24 24"><path d="M3.5 5v14M20.5 5v14M7.5 12h9M10 9l-3 3 3 3M14 9l3 3-3 3"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path d="m6 15 6-6 6 6"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/></symbol>
+  <symbol id="i-log" viewBox="0 0 24 24"><path d="M14 3H6.5v18h11V6.5zM14 3v3.5h3.5M9.5 12h5M9.5 16h5"/></symbol>
+  <symbol id="i-system" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></symbol>
+  <symbol id="i-light" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></symbol>
+  <symbol id="i-dark" viewBox="0 0 24 24"><path d="M19.5 14.5A8 8 0 1 1 9.5 4.5a6.5 6.5 0 0 0 10 10z"/></symbol>
+</svg>
 <script type="module" src="./viewer.mjs"></script>
 </html>

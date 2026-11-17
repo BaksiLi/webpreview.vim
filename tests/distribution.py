@@ -44,7 +44,8 @@ def smoke(python, directory):
                         break
                     time.sleep(0.025)
                 assert state.get('text') == '# Unsaved draft.' if kind == 'markdown' else state.get('sha256'), state
-                for route in ['', 'viewer.mjs', 'markdown/vendor.mjs' if kind == 'markdown' else 'pdfjs/build/pdf.min.mjs']:
+                for route in ['', 'theme.js', 'viewer.mjs',
+                        'markdown/vendor.mjs' if kind == 'markdown' else 'pdfjs/build/pdf.min.mjs']:
                     connection.request('GET', url.path + route)
                     response = connection.getresponse()
                     assert response.status == 200, route
