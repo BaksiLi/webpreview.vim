@@ -75,7 +75,6 @@ and comparison PDFs, explicit source selection, local browser assets without a
 Node runtime, and sessions owned by the editing Vim. This is not a claim to
 outperform the underlying rendering engines.
 
-Feature parity with `markdown-preview.nvim` is not the goal. Diagram integrations
-and automatic table of contents are absent. Diagram fences remain code and
-author HTML is literal. New features should solve a writing task and retain
-source navigation; prefer content extensions to a larger common reader.
+Pele diagrams are a Markdown content extension. The Markdown host supplies the
+fence's source range and the reader handles navigation as for any other block.
+Author HTML is literal. Prefer content extensions to a larger common reader.

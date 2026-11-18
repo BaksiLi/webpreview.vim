@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "webpreview"
-version = "0.1.0"
-description = "A unified preview interface for Markdown and LaTeX in Vim"
+version = "0.2.0"
+description = "Live Markdown and LaTeX preview for Vim, in your browser"
 readme = "README.md"
 requires-python = ">=3.9"
 license = "MIT"

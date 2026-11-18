@@ -10,6 +10,7 @@ source attributes, resource policy or packaged browser code.
 | Markdown syntax survives bundling and source decoration | `tests/commonmark.mjs`, `tests/markdown-engine.mjs` |
 | Extensions retain native AST/tokens and source ownership | `tests/remark-annotation.mjs`, `tests/markdown-build.mjs` |
 | Browser controls, refresh, selection, reading position and touch layout | `tests/browser.mjs`, `tests/markdown.browser.mjs` |
+| Mermaid live edits, fence navigation and fallback to code | `tests/markdown.browser.mjs` in both engine profiles |
 | Complete PDF publication, revision comparison, SyncTeX, private transport and shutdown | `tests/test_reader.py` |
 | Unsaved drafts, media, linked notes and deferred source jumps | `tests/test_markdown.py` |
 | Standalone Vim commands and selection | `tests/vim.vim` |

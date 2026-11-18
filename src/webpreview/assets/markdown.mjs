@@ -74,8 +74,14 @@ async function inverse(position) {
   try {
     const response = await fetch('./inverse', { method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...position, revision }), signal: AbortSignal.timeout(5000) });
-    notice.textContent = await response.text();
-  } catch { notice.textContent = 'Connection lost · this page will retry'; }
+    flash(await response.text(), response.ok ? 2000 : 6000);
+  } catch { flash('Connection lost · this page will retry'); }
+}
+let flashTimer = 0;
+function flash(message, ms = 6000) {
+  clearTimeout(flashTimer);
+  notice.textContent = message;
+  flashTimer = setTimeout(() => { if (!armed) notice.textContent = ''; }, ms);
 }
 source.onpointerdown = event => { if (selected()) event.preventDefault(); };
 source.onclick = () => {
@@ -100,7 +106,7 @@ body.addEventListener('click', event => {
   }
 }, true);
 $('#follow').onchange = showCursor;
-$('#session').onclick = () => { notice.textContent = $('#session').title + '. Quitting Vim ends this session.'; };
+$('#session').onclick = () => flash($('#session').title + '. Quitting Vim ends this session.');
 document.addEventListener('selectionchange', controls);
 document.addEventListener('keydown', event => {
   if (event.key === 'Escape') {

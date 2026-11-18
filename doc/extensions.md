@@ -16,8 +16,8 @@ plugins.
 An extension exports `extend({ remark, rehype })`, receiving native unified
 processors. Use `.use()` for MDAST or HAST plugins. CSS imports are bundled too.
 Standard GFM/math support remains installed. A custom entry replaces the
-annotation preset; copy [the supplied entry](../web/remark-extensions.mjs) to
-retain it.
+default extensions. Start with [the supplied entry](../web/remark-extensions.mjs)
+to retain Inline Annotation and Mermaid rendering.
 
 For example, install `remark-directive` and `unist-util-visit` in your extension
 directory, then render `:::note` containers:
@@ -70,7 +70,7 @@ Choose the engine explicitly:
 node web/build-assets.mjs --engine markdown-it --extensions ~/my-preview/extensions.mjs --output ~/my-preview/markdown.zip
 ```
 
-Omit `--extensions` for [the supplied annotation preset](../web/markdown-extensions.mjs).
+Omit `--extensions` for [the supplied annotation and Mermaid preset](../web/markdown-extensions.mjs).
 The two engines have intentional dialect differences; they do not promise
 identical syntax or ASTs. See [test scope](testing.md).
 
@@ -93,5 +93,12 @@ Selecting an entire annotation recovers its original Markdown; partial selection
 does not expand to the whole annotation.
 
 Keep raw HTML literal, escape generated text/attributes, and bundle local assets.
-The reader's resource policy remains in force. Interactive DOM widgets require
-their own integration; a parser extension alone does not manage widget lifetime.
+The reader's resource policy remains in force.
+
+## Mermaid fences
+
+The bundled extensions use [Pele](https://pele.run/) to render `mermaid` fences
+in both profiles. The rendered figure retains the fence's source range.
+Diagram links and embedded images are disabled. If a diagram is invalid or
+unsupported, the fence stays readable as code. The [Pele compatibility guide](https://pele.run/compatibility/)
+lists syntax differences from Mermaid.js.

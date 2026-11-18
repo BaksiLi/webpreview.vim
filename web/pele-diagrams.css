@@ -1,0 +1,14 @@
+.wp-diagram {
+  margin: 1.25em 0;
+}
+
+.wp-diagram > img {
+  display: block;
+  height: auto;
+  margin: 0 auto;
+  max-width: 100%;
+}
+
+:root[data-theme=dark] main .wp-diagram > img {
+  background: transparent;
+}

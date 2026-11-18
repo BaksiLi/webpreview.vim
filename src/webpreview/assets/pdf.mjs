@@ -16,7 +16,7 @@ const viewer = new PDFViewer({
 links.setViewer(viewer);
 let shown = '', latest = '', loading = false, position = null, located = 0, restore = null;
 let armed = false, syncAvailable = false, connected = null;
-let noticeUntil = 0;
+let noticeTimer = 0;
 let documentError = '', manualScale = 1;
 let diff, diffRequest = 0, observedPosition = null, shownMode = 'original', wantedMode = 'original';
 const views = {};
@@ -49,9 +49,11 @@ function selection() {
   return { range, text: selected.toString().trim() };
 }
 
-function notice(message) {
+// Messages clear themselves: confirmations quickly, problems after a longer read.
+function notice(message, ms = 6000) {
+  clearTimeout(noticeTimer);
   status.textContent = message;
-  noticeUntil = Date.now() + 5000;
+  noticeTimer = setTimeout(() => { if (!armed) status.textContent = ''; }, ms);
 }
 
 function updateControls() {
@@ -234,7 +236,7 @@ async function inverse(request) {
       signal: AbortSignal.timeout(10000),
       body: JSON.stringify({ ...request, revision: shown, version: shownMode }),
     });
-    notice(await response.text());
+    notice(await response.text(), response.ok ? 2000 : 6000);
   } catch {
     notice('Connection lost · this tab will retry automatically');
   }
@@ -383,7 +385,6 @@ $('#change-close').onclick = () => closeDetail(true);
 function session(value) {
   if (value === 'connected' && connected === false) {
     status.textContent = '';
-    noticeUntil = 0;
   }
   connected = value === 'connected';
   const button = $('#session');
@@ -472,7 +473,6 @@ async function poll() {
     // An explicit source locate returns to Original; following never interrupts a revision read.
     if (observedPosition !== null && position && position.id !== observedPosition && !position.follow) wantedMode = 'original';
     observedPosition = position?.id || 0;
-    if (!armed && Date.now() > noticeUntil) status.textContent = '';
     const mode = wantedMode === 'changes' && diff?.sha256 ? 'changes' : 'original';
     const revision = mode === 'changes' ? diff?.sha256 : latest;
     if (revision && !selection() && (mode !== shownMode || (!shown || revision !== shown
@@ -484,8 +484,6 @@ async function poll() {
       session('disconnected');
       arm(false);
       notice('Preview disconnected · keeping the last PDF');
-    } else if (!armed && Date.now() > noticeUntil) {
-      status.textContent = '';
     }
     updateControls();
   } finally {

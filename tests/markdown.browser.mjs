@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { mkdtempSync, realpathSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, realpathSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -181,6 +181,28 @@ for (const [name, engine] of Object.entries({ chromium, webkit })) {
       await page.setViewportSize({ width, height: 844 });
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     }
+    const specimen = readFileSync(join(packageRoot, 'doc/examples/transitivity.md'), 'utf8');
+    send({ event: 'source', file, text: specimen });
+    const diagram = page.locator('figure[data-line="5"]');
+    const drawing = diagram.getByRole('img', { name: /Mermaid diagram/ });
+    await drawing.waitFor();
+    await until(() => drawing.evaluate(node => node.complete && node.naturalWidth > 0), 'Pele SVG loads under reader CSP');
+    assert.equal(await diagram.getAttribute('data-end-line'), '9');
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'diagram fits the reader');
+    const sourceBeforeDiagram = events.filter(e => e.event === 'source').length;
+    await page.locator('#source').click();
+    await drawing.click();
+    await until(() => events.filter(e => e.event === 'source').length > sourceBeforeDiagram, 'diagram locates the fence in Vim');
+    assert.equal(events.filter(e => e.event === 'source').at(-1).line, 5);
+    const originalSvg = await drawing.getAttribute('src');
+    send({ event: 'source', file, text: specimen.replace('b --> c', 'b --> c\n  a --> c') });
+    await until(async () => await drawing.getAttribute('src') !== originalSvg, 'an unsaved diagram edit renders');
+    send({ event: 'source', file, text: specimen.replace('flowchart LR', 'unsupported-diagram') });
+    await page.locator('pre[data-line="5"] code').filter({ hasText: 'unsupported-diagram' }).waitFor();
+    assert.equal(await diagram.count(), 0, 'an unfinished diagram leaves its source visible');
+    assert.equal(await page.locator('#state').textContent(), 'Live draft');
+    assert.deepEqual(unexpected, [], 'diagrams make no external requests');
+
     const mobile = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
     const touch = await mobile.newPage();
     await touch.goto(url);

@@ -1,0 +1,27 @@
+<!doctype html>
+<meta charset="utf-8">
+<style>
+  * { box-sizing: border-box }
+  body { margin:0; display:grid; grid-template-columns:540px 822px; grid-template-rows:568px 40px;
+    padding:12px; gap:12px; background:#151a22; color:#eef2f6; font:15px system-ui, sans-serif }
+  section { display:grid; grid-template-rows:32px minmax(0, 1fr); overflow:hidden;
+    border:1px solid #3b4756; border-radius:8px }
+  header { display:flex; align-items:center; justify-content:space-between; background:#283341;
+    padding:0 12px; color:#e1e7ed; font-size:13px }
+  header span { color:#b2c1d1 }
+  #editor { position:relative; background:#202632; overflow:hidden; padding:8px 8px 0;
+    font:14px/21px Menlo, "DejaVu Sans Mono", "PingFang TC", monospace }
+  .row { display:flex; height:21px; white-space:pre }
+  .cell { display:block; flex:none; text-align:center }
+  .glyph { display:inline-block; transform-origin:center; white-space:pre }
+  #cursor { position:absolute; width:8.5px; height:20px; border:1px solid #cdd5e3; pointer-events:none }
+  iframe { display:block; width:100%; height:100%; border:0; background:#fff }
+  footer { grid-column:1/-1; display:flex; align-items:center; gap:12px; padding:0 14px;
+    background:#263241; border:1px solid #3b4756; border-radius:6px; font-weight:500 }
+  #direction { color:#a8d3c9; font-size:20px }
+  #pointer { position:absolute; pointer-events:none; display:none; filter:drop-shadow(0 1px 2px #0007) }
+</style>
+<section><header><strong>Vim · TeXinsitu</strong><span id="filename"></span></header><div id="editor"></div></section>
+<section><header><strong>Browser</strong><span>WebPreview</span></header><iframe title="WebPreview"></iframe></section>
+<footer><span id="direction"></span><span id="caption"></span></footer>
+<svg id="pointer" width="18" height="24" viewBox="0 0 18 24" aria-hidden="true"><path d="M2 2v16l4-4 4 8 3-2-4-8h7z" fill="#172739" stroke="#fff" stroke-width="1.2"/></svg>

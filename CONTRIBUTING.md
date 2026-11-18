@@ -51,6 +51,21 @@ including multiple versions of the same dependency. [Third-party notices](THIRD_
 describe provenance. Asset changes need the shipped-output tests, not just tests
 of unbundled source.
 
+## Recording the README demos
+
+Use Vim 9.0.0121+ with terminal support, a TeXinsitu checkout with a built or
+installed kernel, Playwright Chromium, `latexmk`, `pdflatex`, `latexdiff` and
+FFmpeg. Run the recorder with a new output directory:
+
+```sh
+node web/demo/record.mjs /path/to/texinsitu.vim /path/to/new-demo-output
+```
+
+The recorder copies the example documents and starts an isolated Vim and
+browser. It captures Vim's terminal cells beside the live reader, verifies
+source navigation and emits two GIFs, screenshots and a combined MP4. Review
+the result before copying the README media into `doc/`.
+
 ## Preparing a release
 
 Before tagging a release:

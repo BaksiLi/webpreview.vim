@@ -1,0 +1,23 @@
+\documentclass[12pt]{article}
+\usepackage[paperwidth=140mm,paperheight=120mm,
+  margin=14mm]{geometry}
+\usepackage{amsmath,amssymb}
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{.65em}
+\begin{document}
+{\LARGE One missing edge\par}
+\medskip
+Write $R(x)$ for the worlds within one step of $x$.
+Transitivity says that two steps never take you
+somewhere a single step could not reach:
+\[
+  \bigcup_{y\in R(x)} R(y) \subseteq R(x).
+\]
+The inclusion holds at the initial world.
+
+Suppose $Rab$ and $Rbc$ but not $Rac$.
+If $p$ holds at exactly the worlds in $R(a)$,
+then it holds one step from $a$ but fails
+two steps away, at $c$. This refutes axiom~4.
+\end{document}

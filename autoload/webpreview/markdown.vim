@@ -32,7 +32,9 @@ endfunction
 function! s:Resume() abort
   if mode(1) !~# '^n' || !has_key(s:preview, 'pending') | return | endif
   let l:position = remove(s:preview, 'pending')
-  if webpreview#locate(l:position) && get(l:position, 'event', '') ==# 'file'
+  let l:located = webpreview#locate(l:position)
+  redrawstatus
+  if l:located && get(l:position, 'event', '') ==# 'file'
     call webpreview#open()
   endif
 endfunction

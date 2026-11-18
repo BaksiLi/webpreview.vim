@@ -1,0 +1,45 @@
+set nocompatible encoding=utf-8
+set number nowrap laststatus=2 noshowcmd noruler cmdheight=1 shortmess+=I
+let &statusline = '%f %m%=%l:%c '
+set termguicolors background=dark
+syntax on
+colorscheme habamax
+highlight Normal guifg=#e1e7ed guibg=#202632
+highlight LineNr guifg=#8d9bab guibg=#202632
+highlight Visual guifg=#f1f5ff guibg=#405b89
+highlight TexInsitu guifg=#a8d3c9
+
+execute 'set runtimepath^='.fnameescape($DEMO_PACKAGE)
+execute 'set runtimepath^='.fnameescape($DEMO_TEXINSITU)
+runtime plugin/texinsitu.vim
+runtime plugin/webpreview.vim
+filetype on
+
+function! DemoBrowser(url) abort
+  call writefile([a:url], 'reader.tmp')
+  call rename('reader.tmp', 'reader.url')
+  return 1
+endfunction
+function! DemoNotify(title, lines, error) abort
+  if a:error | echomsg join(a:lines, ' ') | endif
+endfunction
+let g:webpreview_browserfunc = 'DemoBrowser'
+let g:webpreview_notify = 'DemoNotify'
+
+function! DemoState(timer) abort
+  let l:mode = mode(1)
+  let l:state = {'mode': l:mode, 'line': line('.'), 'modified': &modified}
+  if l:mode ==# 'v'
+    let l:start = getpos('v')[2]
+    let l:state.selection = strpart(getline('.'), l:start - 1, col('.') - l:start + 1)
+  endif
+  call writefile([json_encode(l:state)], 'editor.tmp')
+  call rename('editor.tmp', 'editor.json')
+endfunction
+function! DemoStart() abort
+  call cursor(&filetype ==# 'tex' ? 10 : 7, 1)
+  WebPreview
+  redraw!
+  call timer_start(60, function('DemoState'), {'repeat': -1})
+endfunction
+autocmd VimEnter * call DemoStart()

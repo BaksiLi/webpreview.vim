@@ -6,11 +6,11 @@ licenses; they are included rather than fetched from a CDN at runtime.
 | Material | Source and version | Notices |
 | --- | --- | --- |
 | PDF.js | npm `pdfjs-dist` 5.4.624, Mozilla PDF.js | `src/webpreview/assets/pdfjs-5.4.624.zip`: `LICENSE` and licenses in `cmaps/`, `standard_fonts/`, `wasm/` |
-| Markdown, math and annotation libraries | npm packages pinned in `package-lock.json` | `markdown-libraries.zip`: `versions.json`, versioned license files and `vendor.mjs.LEGAL.txt` |
+| Markdown, math, annotation and diagram libraries | npm packages pinned in `package-lock.json` | `markdown-libraries.zip`: `versions.json`, versioned license files and `vendor.mjs.LEGAL.txt` |
 | CommonMark examples | CommonMark specification 0.31.2, John MacFarlane | `tests/fixtures/commonmark/LICENSE`; specification data is CC BY-SA 4.0 |
 
 The default Markdown archive contains remark, unified, GFM/math, KaTeX and
-Inline Annotation, with their transitive runtime modules. The optional
+Inline Annotation and Pele, with their transitive runtime modules. The optional
 markdown-it archive contains the selected engine and its plugins. The inventory
 inside each archive describes that build, not every development dependency.
 

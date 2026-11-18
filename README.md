@@ -1,16 +1,30 @@
-# WebPreview
+# WebPreview.vim
 
-**A unified preview interface for Markdown and LaTeX in Vim.**
+**Live Markdown and LaTeX preview for Vim, in your browser.**
 
-Read your draft in the browser, locate or select its source, and keep editing.
-The editing Vim owns the preview session: detaching a terminal multiplexer keeps
-it alive; exiting Vim ends it.
+Edit Markdown beside its live draft, or read a compiled LaTeX PDF with SyncTeX
+and latexdiff. Jump between Vim and the browser in either direction. The preview
+stays open when you detach from tmux or Zellij and ends when you quit Vim.
 
-![Live Markdown, source selection, and TeX Original/Changes with search](doc/workflow.gif)
+![Vim Markdown preview with Mermaid: an unsaved edit redraws the diagram, then a selected Chinese ruby annotation returns to Vim Visual mode.](doc/vim-markdown-live-preview.gif)
 
-Live draft → select in source → compiled TeX → Changes → search, in nine seconds.
-Static screenshots: [Markdown](doc/preview.png) · [TeX Changes](doc/changes.png) ·
-[Dark mode](doc/preview-dark.png).
+![Vim LaTeX PDF preview: clicking a PDF line jumps to its source through SyncTeX, then latexdiff marks the revision in the same tab.](doc/vim-latex-pdf-preview-synctex.gif)
+
+*Terminal Vim with optional [TeXinsitu](https://github.com/BaksiLi/texinsitu.vim)
+on the left. Try the [Markdown draft](doc/examples/transitivity.md) or the
+[LaTeX source](doc/examples/correspondence.tex) and its
+[baseline](doc/examples/correspondence.base.tex).*
+
+<details>
+<summary>Screenshots · Markdown, TeX Changes and dark mode</summary>
+
+![Live Markdown preview with a three-world Mermaid diagram and a Chinese ruby annotation](doc/preview.png)
+
+![LaTeX PDF preview with latexdiff insertions and deletions marked](doc/changes.png)
+
+![Markdown preview in dark mode](doc/preview-dark.png)
+
+</details>
 
 ## Install
 
@@ -20,7 +34,7 @@ With Vim's native packages, run `git clone https://github.com/BaksiLi/webpreview
 
 Requires Vim 8.2+ with jobs, channels and timers, Python 3.9+, and
 `filetype plugin on`. Browser libraries and fonts ship locally; no Node runtime
-or pip installation is needed.
+or pip installation is needed. See [tested platforms](doc/testing.md).
 
 ## Use
 
@@ -39,52 +53,54 @@ nnoremap <leader>p <Cmd>WebPreview<CR>
 
 | Document | Preview |
 | --- | --- |
-| Markdown | Live buffer, including unsaved edits; math, tables, footnotes and Inline Annotation |
+| Markdown | Live buffer, including unsaved edits; math, tables, footnotes, Inline Annotation and Mermaid diagrams |
 | LaTeX | Compiled PDF through PDF.js; SyncTeX navigation and latexdiff comparisons |
 | Cogitatum | Optional vim-cogitatum integration; its terminal Reading/Map remain available |
 
-TeX navigation needs SyncTeX. Comparisons additionally use `latexdiff`, `latexmk`
-and the project's TeX engine. Cogitatum needs its own host plugin.
+- **Markdown** previews the unsaved buffer, preserves reading position and
+  pauses refresh while you select text. Relative note links reuse the session.
+- **LaTeX** previews the existing PDF from VimTeX or beside the source.
+  SyncTeX links back to Vim. The PDF reader offers search, Fit and Original/Changes.
+  Comparisons use `latexdiff`, `latexmk` and your TeX engine, and can pick up
+  `paper.base.tex` beside `paper.tex`. See [baseline conventions](doc/changes.md).
+- **Locate in source** takes you to a passage. **Select in source** enters
+  Vim Visual mode when the selected text matches a unique source fragment.
+  Jumps wait while you're editing in Insert or Visual mode.
 
-This is an early 0.x package. Browser checks cover Chromium and WebKit on macOS
-and Linux CI, including narrow/touch layouts. Native Windows and physical
-iOS/Termius have not been verified. Neovim is not currently supported.
+Inline Annotation ships with Markdown. Write
+`[可達關係]^^(Accessibility)` to place the gloss above the phrase.
+Selecting the whole annotation in the browser recovers the markup in Vim.
 
-TeX opens the existing PDF discovered through VimTeX, or beside the source.
-It never saves or compiles the manuscript. Markdown sends the current buffer
-without saving it. Your editor configuration owns saving, conflicts and builds.
+<img src="doc/annotation.png" width="88" alt="The gloss “Accessibility” above the Chinese term “可達關係”">
 
-Use **Locate in source** to choose a passage. Selecting browser text offers
-**Select in source**; Vim enters Visual only for a unique literal source match.
-Source jumps wait while you type or select. Dirty buffers are preserved.
+Mermaid fences render locally with Pele. **Locate in source** on a diagram
+returns to its fence.
 
-PDF offers Original/Changes views, search, continuous Fit and optional following.
-Markdown retains native browser Find, refreshes without losing reading position,
-and pauses updates during text selection. Relative note links reuse its session.
-Cogitatum currently retains its own browser UI and transport.
-
-Both readers follow the system colour scheme. Choose System, Light or Dark in
-More options to override it; the choice is shared by previews in the same
-browser on the same host. PDF pages keep their original colours so figures and print layout
-remain faithful to the compiled document.
-
-For `paper.tex`, a source-adjacent `paper.base.tex` is detected automatically.
-Use `paper.review-base` for a Git ref or a relative path to a multi-file baseline.
-Generated diff TeX stays private. See [Changes and baseline conventions](doc/changes.md).
+Choose System, Light or Dark in **More options**. PDF pages keep their printed
+colours. Your Vim setup owns saving and builds. Cogitatum uses its own host
+plugin for semantic preview. For the full command reference, see `:help webpreview`.
 
 ## Configure
 
 Set options before loading the plugin:
 
 ```vim
-let g:webpreview_browser = 'Firefox'          " Optional local browser
-let g:webpreview_host = 'preview.example'    " Optional private relay hostname
+let g:webpreview_browser = 'Firefox'       " Optional local browser
+let g:webpreview_host = 'preview.example'   " Optional private relay hostname
 ```
 
-The default host is `127.0.0.1`; the listener always stays on loopback behind a
-session token. SSH/mobile sessions show the URL instead of opening a browser on
-the server. Configure a private relay or forward that loopback port locally.
-Keep real hostnames and session URLs in local configuration.
+WebPreview listens on `127.0.0.1` and prints a tokenized URL in remote Vim
+sessions. Keep the token path intact when opening it from another device.
+
+- **SSH forwarding** works over an ordinary SSH connection or one over
+  Tailscale. Forward the port Vim reports on the remote machine to a local
+  port, then open the URL with that local port.
+- **Private relay** can use [Surge Ponte](https://manual.nssurge.com/features/ponte.html)
+  or [Tailscale Serve](https://tailscale.com/docs/reference/tailscale-cli/serve).
+  With Ponte, set `g:webpreview_host` to your device's Ponte hostname. With
+  Serve, proxy the reported loopback port and open Serve's private URL with
+  the same token path. If the proxy forwards its own host name, set
+  `g:webpreview_host` to that name in Vim. Keep device names and session URLs local.
 
 `:help webpreview` documents commands, options and Vim integration hooks.
 The Python CLI is also available: `python3 bin/webpreview --pdf /path/paper.pdf`.
@@ -93,9 +109,9 @@ The Python CLI is also available: `python3 bin/webpreview --pdf /path/paper.pdf`
 ## Extend and develop
 
 The default Markdown engine is remark/MDAST; markdown-it is an optional build
-profile. Extensions use each engine's native API. Inline Annotation is both
-the default extension and a working example. Build tools are needed only when
-changing bundled libraries or adding extensions.
+profile. Extensions use each engine's native API. Inline Annotation and Pele
+are bundled examples. Build tools are needed only when changing bundled
+libraries or adding extensions.
 
 - [Engine profiles and extensions](doc/extensions.md)
 - [Product boundaries and code layout](doc/architecture.md)
@@ -104,12 +120,10 @@ changing bundled libraries or adding extensions.
 - [Test scope and upstream fixtures](doc/testing.md)
 - [Third-party notices](THIRD_PARTY.md)
 
-Raw author HTML stays literal, remote resources do not load automatically,
-and diagram fences remain code. Markdown images and linked notes stay within
-the open document's folder. Inline Cogitatum rendering, automatic TOC and diagram
-integrations are not supplied. These boundaries keep the reading-to-source
-workflow predictable.
+Raw author HTML stays literal and remote resources do not load automatically.
+Markdown images and linked notes stay within the open document's folder.
+Inline Cogitatum rendering and automatic TOC are outside the Markdown reader.
 
 ## Related
 
-WebPreview is one of a small family of Vim plugins for writing: [MdToc.vim](https://github.com/BaksiLi/mdtoc.vim), [WebPreview.vim](https://github.com/BaksiLi/webpreview.vim) and [TeXinsitu.vim](https://github.com/BaksiLi/texinsitu.vim). Each works on its own. They were developed together in [Onesimus Vim](https://github.com/BaksiLi/Onesimus), a Vim distribution for scientific writing, which shows them combined.
+Companion plugins: [MdToc.vim](https://github.com/BaksiLi/mdtoc.vim) for Markdown tables of contents and [TeXinsitu.vim](https://github.com/BaksiLi/texinsitu.vim) for TeX math rendered in Vim. [Onesimus Vim](https://github.com/BaksiLi/Onesimus), a Vim distribution for scientific writing, shows them working together.

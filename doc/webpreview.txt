@@ -40,6 +40,8 @@ Jumps unfold the target, preserve dirty buffers, and wait for Normal mode.
 Markdown updates from the live buffer. Reading position is preserved; browser
 selection pauses refresh. Relative note links open in Vim and reuse the session.
 Cmd-F / Ctrl-F uses the browser's native Find.
+The bundled Markdown profile renders Mermaid through Pele. Locate in source
+on a diagram returns to its fence. Unfinished or unsupported fences stay code.
 
 PDF displays the last complete build. Original/Changes retain independent
 reading positions and zoom. Changes are private latexdiff output; removed
