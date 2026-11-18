@@ -178,7 +178,7 @@ endfunction
 function! s:ResumeSource() abort
   if mode(1) !~# '^n' || !has_key(s:browser, 'pending_source') | return | endif
   call webpreview#locate(remove(s:browser, 'pending_source'))
-  redrawstatus
+  call timer_start(0, {-> execute('redrawstatus')})
 endfunction
 
 

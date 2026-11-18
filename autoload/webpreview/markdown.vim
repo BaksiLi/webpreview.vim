@@ -33,7 +33,8 @@ function! s:Resume() abort
   if mode(1) !~# '^n' || !has_key(s:preview, 'pending') | return | endif
   let l:position = remove(s:preview, 'pending')
   let l:located = webpreview#locate(l:position)
-  redrawstatus
+  " Redraw after leaving the channel or SafeState callback's editor context.
+  call timer_start(0, {-> execute('redrawstatus')})
   if l:located && get(l:position, 'event', '') ==# 'file'
     call webpreview#open()
   endif
